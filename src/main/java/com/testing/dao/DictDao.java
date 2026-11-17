@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Component
@@ -25,7 +27,8 @@ public class DictDao {
                 .withSeparator('#')
                 .build();
 
-        final CSVReader csvReader = new CSVReaderBuilder(new FileReader(pathFile))
+        final CSVReader csvReader = new CSVReaderBuilder(
+                new InputStreamReader(new FileInputStream(pathFile), StandardCharsets.UTF_8))
                 .withCSVParser(parser)
                 .withSkipLines(fromWord - 1) //отсекли лишние строки из начала файла
                 .build();
@@ -41,7 +44,7 @@ public class DictDao {
 
             Map<String, String> dict = new HashMap<>();
             for (String[] arr : lines.subList(0, countOfWords)) { //отсекаем лишние строки из конца файла
-                dict.put(arr[0], arr[1]);
+                dict.put(arr[0].replace("\uFEFF", ""), arr[1]); //убираем возможный UTF-8 BOM у первого слова
             }
             return dict;
         }
